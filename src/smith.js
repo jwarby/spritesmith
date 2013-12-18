@@ -3,8 +3,9 @@ var async = require('async'),
     EngineSmith = require('./smiths/engine.smith.js'),
     Layout = require('layout'),
     CanvasSmith = require('./smiths/canvas.smith.js'),
+    fs = require('fs'),
+    crypto = require('crypto'),
     engines = {};
-
 
 /**
  * Spritesmith generation function
@@ -16,6 +17,7 @@ var async = require('async'),
  * @param {Mixed} [params.exportOpts] Options to pass through to engine for export
  * @param {Function} callback Function that receives compiled spritesheet and map
  * @returns {Mixed} callback[0] err If an error was encountered, this will be returned to callback
+ * A
  * @returns {Object} callback[1] result Result object of spritesmith
  * @returns {String} callback[1].image Binary string representation of image
  * @returns {Object} callback[1].coordinates Map from file name to an object containing x, y, height, and width information about the source image
@@ -45,9 +47,59 @@ function Spritesmith(params, callback) {
     engine.set(engineOpts);
   }
 
+  function UniqueLayout(algorithm) {
+    // Layout manager
+    this.layout = new Layout(algorithm);
+    // List of duplicate items, stored as arrays keyed by hash of image data
+    this.duplicates = {};
+  }
+
+  UniqueLayout.prototype.addItem = function(item) {
+    // Create hash of image data
+    var md5 = crypto.createHash('md5');
+    md5 = md5.update(fs.readFileSync(item.meta.img._filepath)).digest('hex');
+
+    // If there are no existing entries for this hash, add to the layout
+    if (!this.duplicates[md5]) {
+      // Add to layout
+      this.layout.addItem(item);
+      // Add hash to item's meta data
+      item.meta.hash = md5;
+      // Initialise an empty duplicates array
+      this.duplicates[md5] = [];
+    } else {
+      // We have an existing entry so add to the duplicates array for this hash
+      this.duplicates[md5].push(item);
+    }
+  }
+
+  UniqueLayout.prototype['export'] = function() {
+    var allItems = [],
+        packed = this.layout['export'](),
+        that = this;
+
+    packed.items.forEach(function(item) {
+      var duplicates = that.duplicates[item.meta.hash];
+      // Add to list of all items
+      allItems.push(item);
+
+      // Loop over duplicates and add x and y coordinates; add the item to the
+      // list of all items
+      duplicates.forEach(function(duplicate) {
+        duplicate.x = item.x;
+        duplicate.y = item.y;
+        allItems.push(duplicate);
+      });
+    });
+
+    packed.items = allItems;
+
+    return packed;
+  }
+
   // Create our smiths
   var engineSmith = new EngineSmith(engine),
-      layer = new Layout(algorithmPref),
+      layer = new UniqueLayout(algorithmPref),
       padding = params.padding || 0,
       exportOpts = params.exportOpts || {},
       packedObj;

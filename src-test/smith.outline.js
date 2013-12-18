@@ -25,7 +25,26 @@ var outlines = [{
       "has the proper properties": true
     }
   }
-}];
+}, {
+  "An array with non-unique sprites": {
+    "when processed via spritesmith": {
+      "renders a top-down spritesheet": true,
+      "has the proper coordinates": true,
+      "has the proper properties": true
+    },
+    "when converted from left to right": {
+      "renders a left-right spritesheet": true,
+      "has the proper coordinates": true,
+      "has the proper properties": true
+    },
+    "when provided with a padding parameter": {
+        "renders a padded spritesheet": true,
+        "has the proper coordinates": true,
+        "has the proper properties": true
+    }
+  }
+}
+];
 
 function addEngineTest(engine) {
   // Attempt to load the engine

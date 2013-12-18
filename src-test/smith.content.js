@@ -23,6 +23,10 @@ module.exports = {
     this.namespace = 'empty.';
     this.sprites = [];
   },
+  'An array with non-unique sprites': ['An array of sprites', function() {
+      this.namespaceExtension = 'nonunique.';
+      this.sprites.push(path.join(spriteDir, 'sprite4.png'));
+  }],
 
   // Processing
   'when processed via spritesmith': '_when processed via spritesmith',
@@ -32,6 +36,11 @@ module.exports = {
     // Load in params and add on to src
     var options = this.options || {},
         params = _.extend({'src': this.sprites}, options);
+
+    // Append namespace extension if it exists
+    if (!(new RegExp(this.namespaceExtension).test(this.namespace))) {
+        this.namespace += this.namespaceExtension || '';
+    }
 
     // Attempt to smith out the sprites
     smith(params, function (err, result) {
@@ -111,7 +120,8 @@ module.exports = {
     // Assert the actual image is the same expected
     var actualImage = result.image,
         expectedFilenames = ['canvas.png', 'gm.png', 'gm2.png', 'phantomjs.png', 'phantomjs2.png'],
-        matchesAnImage = false;
+        matchesAnImage = false,
+        resultage = [];
 
     // ANTI-PATTERN: Looping over set without identifiable lines for stack traces
     expectedFilenames.forEach(function testAgainstExpected (filename) {

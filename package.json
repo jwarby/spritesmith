@@ -12,7 +12,16 @@
     "css"
   ],
   "author": "Todd Wolfson <todd@twolfson.com>",
-  "contributors": "Alex Bain <alex@alexba.in",
+  "contributors": [
+    {
+      "name": "Alex Bain",
+      "email": "alex@alexba.in"
+    },
+    {
+      "name": "James Warwood",
+      "email": "james.warwood@frogtrade.com"
+    }
+  ],
   "license": "MIT",
   "dependencies": {
     "async": "~0.2.6",
